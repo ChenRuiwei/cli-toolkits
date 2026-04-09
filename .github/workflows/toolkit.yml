@@ -30,122 +30,125 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install eget
-        run: curl https://zyedidia.github.io/eget.sh | sh
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
 
-      - name: Download Tools for linux/${{ matrix.arch }}
+      - name: Build Tools for linux/${{ matrix.arch }}
         run: |
-          TARGET="linux/${{ matrix.arch }}"
+          TARGET="${{ matrix.arch }}"
           OUT="bin"
           mkdir -p $OUT
 
           echo "🚀 Architecture: $TARGET"
 
+          # Rust tools via cargo install
           echo "⬇️ bat..."
-          ./eget sharkdp/bat --system $TARGET --asset "musl" --asset "tar.gz" --to $OUT/
+          cargo install bat --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/bat" "$OUT/"
 
           echo "⬇️ btop..."
-          if [ "${{ matrix.arch }}" = "amd64" ]; then
-            ./eget aristocratos/btop --asset "btop-x86_64-unknown-linux-musl.tbz" --to $OUT/
-          else
-            ./eget aristocratos/btop --asset "btop-aarch64-unknown-linux-musl.tbz" --to $OUT/
-          fi
+          cargo install btop --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/btop" "$OUT/"
 
           echo "⬇️ delta..."
-          ./eget dandavison/delta --system $TARGET --asset "musl" --asset "tar.gz" --to $OUT/
-
-          echo "⬇️ direnv..."
-          if [ "${{ matrix.arch }}" = "amd64" ]; then
-            ./eget direnv/direnv --asset "direnv.linux-amd64" --to $OUT/
-          else
-            ./eget direnv/direnv --asset "direnv.linux-arm64" --to $OUT/
-          fi
-          chmod +x $OUT/direnv
+          cargo install git-delta --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/delta" "$OUT/"
 
           echo "⬇️ dust..."
-          ./eget bootandy/dust --system $TARGET --asset "gnu" --asset "tar.gz" --to $OUT/
+          cargo install du-dust --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/dust" "$OUT/"
 
           echo "⬇️ eza..."
-          ./eget eza-community/eza --system $TARGET --asset "gnu" --asset "tar.gz" --to $OUT/
+          cargo install eza --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/eza" "$OUT/"
 
           echo "⬇️ fd..."
-          ./eget sharkdp/fd --system $TARGET --asset "musl" --asset "tar.gz" --to $OUT/
-
-          echo "⬇️ fish..."
-          ./eget fish-shell/fish-shell --system $TARGET --to $OUT/
-
-          echo "⬇️ fzf..."
-          ./eget junegunn/fzf --system $TARGET --asset "tar.gz" --to $OUT/
+          cargo install fd-find --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/fd" "$OUT/"
 
           echo "⬇️ lazygit..."
-          ./eget jesseduffield/lazygit --system $TARGET --to $OUT/
+          cargo install lazygit --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/lazygit" "$OUT/"
 
           echo "⬇️ lsd..."
-          ./eget lsd-rs/lsd --system $TARGET --asset "musl" --asset "tar.gz" --to $OUT/
+          cargo install lsd --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/lsd" "$OUT/"
+
+          echo "⬇️ ripgrep..."
+          cargo install ripgrep --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/rg" "$OUT/"
+
+          echo "⬇️ starship..."
+          cargo install starship --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/starship" "$OUT/"
+
+          echo "⬇️ tealdeer..."
+          cargo install tealdeer --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/tealdeer" "$OUT/"
+
+          echo "⬇️ yazi..."
+          cargo install yazi --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/yazi" "$OUT/"
+
+          echo "⬇️ zoxide..."
+          cargo install zoxide --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/zoxide" "$OUT/"
+
+          echo "⬇️ tokei..."
+          cargo install tokei --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/tokei" "$OUT/"
+
+          echo "⬇️ dotter..."
+          cargo install dotter --root "$HOME/.local" --locked
+          mv "$HOME/.local/bin/dotter" "$OUT/"
+
+          # Non-Rust tools (no cargo install available)
+          echo "⬇️ direnv..."
+          if [ "$TARGET" = "amd64" ]; then
+            curl -fsSL "https://github.com/direnv/direnv/releases/latest/download/direnv.linux-amd64" -o "$OUT/direnv"
+          else
+            curl -fsSL "https://github.com/direnv/direnv/releases/latest/download/direnv.linux-arm64" -o "$OUT/direnv"
+          fi
+          chmod +x "$OUT/direnv"
+
+          echo "⬇️ fish..."
+          if [ "$TARGET" = "amd64" ]; then
+            curl -fsSL "https://github.com/fish-shell/fish-shell/releases/latest/download/fish-3.7.0.tar.gz" | tar xz
+            mv fish-*/bin/fish "$OUT/"
+          else
+            curl -fsSL "https://github.com/fish-shell/fish-shell/releases/latest/download/fish-3.7.0.tar.gz" | tar xz
+            mv fish-*/bin/fish "$OUT/"
+          fi
+
+          echo "⬇️ fzf..."
+          curl -fsSL "https://github.com/junegunn/fzf/releases/latest/download/fzf-0.53.0-linux_$TARGET.tar.gz" | tar xz -C "$OUT/"
+          chmod +x "$OUT/fzf"
 
           echo "⬇️ neovim..."
-          if [ "${{ matrix.arch }}" = "amd64" ]; then
+          if [ "$TARGET" = "amd64" ]; then
             curl -fsSL "https://github.com/neovim/neovim/releases/download/v0.12.1/nvim-linux-x86_64.tar.gz" | tar xz
           else
             curl -fsSL "https://github.com/neovim/neovim/releases/download/v0.12.1/nvim-linux-arm64.tar.gz" | tar xz
           fi
-          mv nvim-*/bin/nvim $OUT/
+          mv nvim-*/bin/nvim "$OUT/"
           rm -rf nvim-*
 
-          echo "⬇️ ripgrep..."
-          if [ "${{ matrix.arch }}" = "amd64" ]; then
-            ./eget BurntSushi/ripgrep --asset "x86_64-unknown-linux-musl" --system $TARGET --to $OUT/rg
-          else
-            ./eget BurntSushi/ripgrep --asset "aarch64-unknown-linux-gnu" --system $TARGET --to $OUT/rg
-          fi
-
-          echo "⬇️ starship..."
-          ./eget starship/starship --system $TARGET --asset "musl" --asset "tar.gz" --to $OUT/
-
-          echo "⬇️ tealdeer..."
-          if [ "${{ matrix.arch }}" = "amd64" ]; then
-            ./eget tealdeer-rs/tealdeer --asset "tealdeer-linux-x86_64-musl" --to $OUT/
-          else
-            ./eget tealdeer-rs/tealdeer --asset "tealdeer-linux-aarch64-musl" --to $OUT/
-          fi
-          chmod +x $OUT/tealdeer
-
-          echo "⬇️ yazi..."
-          ./eget sxyazi/yazi --system $TARGET --asset "gnu" --asset "zip" --to $OUT/
-          if [ -f "$OUT/yazi.zip" ]; then
-            unzip -o $OUT/yazi.zip -d $OUT/
-            mv $OUT/yazi*/yazi $OUT/yazi 2>/dev/null || mv $OUT/yazi-*/* $OUT/ 2>/dev/null || true
-            rm -f $OUT/yazi.zip
-            rm -rf $OUT/yazi-*
-          fi
-
-          echo "⬇️ zoxide..."
-          ./eget ajeetdsouza/zoxide --system $TARGET --asset "musl" --asset "tar.gz" --to $OUT/
-
-          echo "🔨 Building tmux..."
+          echo "⬇️ tmux..."
           apt-get update && apt-get install -y libevent-dev libncurses-dev bison pkg-config
           TMUX_VER=$(curl -s https://api.github.com/repos/tmux/tmux/releases/latest | jq -r '.tag_name' | sed 's/^v//')
           curl -fsSL "https://github.com/tmux/tmux/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}.tar.gz" | tar xz
           cd "tmux-${TMUX_VER}"
           ./configure CFLAGS="-I$HOME/.local/include" LDFLAGS="-L$HOME/.local/lib"
           make -j$(nproc)
-          mv tmux $OUT/
+          mv tmux "$OUT/"
           cd .. && rm -rf "tmux-${TMUX_VER}"
 
-          echo "🔨 Building tokei..."
-          cargo install tokei --root $HOME/.local
-          mv $HOME/.local/bin/tokei $OUT/
-
-          echo "🔨 Building dotter..."
-          cargo install dotter --root $HOME/.local
-          mv $HOME/.local/bin/dotter $OUT/
-
           echo "📦 Installed tools:"
-          ls -la $OUT/
+          ls -la "$OUT/"
 
           echo "📦 Compressing..."
-          TAR_NAME="toolkit-${{ matrix.arch }}.tar.gz"
-          tar -czvf $TAR_NAME -C $OUT .
+          TAR_NAME="toolkit-$TARGET.tar.gz"
+          tar -czvf "$TAR_NAME" -C "$OUT" .
 
           echo "TAR_NAME=$TAR_NAME" >> $GITHUB_ENV
 

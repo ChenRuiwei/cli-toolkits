@@ -3,7 +3,7 @@ name: Build Toolkit
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 4 1 */3 *'
+    - cron: "0 4 1 */3 *"
 
 permissions:
   contents: write
@@ -49,7 +49,7 @@ jobs:
           FISH_VER="4.6.0"
           FZF_VER="0.71.0"
           NEOVIM_VER="0.12.1"
-          TMUX_VER="v3.6a"
+          TMUX_VER="3.6a"
           # ================================================================
 
           echo "🚀 Downloading prebuilt binaries..."
@@ -167,7 +167,7 @@ jobs:
 
           # tmux (prebuilt from tmux-builds)
           echo "⬇️ tmux..."
-          curl -fsSL "https://github.com/tmux/tmux-builds/releases/download/${TMUX_VER}/tmux-${TMUX_VER}-linux-x86_64.tar.gz" | tar xz -C $OUT/
+          curl -fsSL "https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-x86_64.tar.gz" | tar xz -C $OUT/
           chmod +x $OUT/tmux
 
           echo ""

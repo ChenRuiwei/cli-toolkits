@@ -158,10 +158,9 @@ jobs:
             "direnv"
 
           # fish
-          echo "⬇️ fish..."
-          curl -fsSL "https://github.com/fish-shell/fish-shell/releases/download/${FISH_VER}/fish-${FISH_VER}-linux-x86_64.tar.xz" | tar xJ -C "$OUT/"
-          mv "$OUT/fish-$FISH_VER-linux-x86_64/bin/fish" "$OUT/"
-          rm -rf "$OUT/fish-"*
+          download_and_extract "fish" \
+            "https://github.com/fish-shell/fish-shell/releases/download/${FISH_VER}/fish-${FISH_VER}-linux-x86_64.tar.xz" \
+            1
 
           # fzf
           download_and_extract "fzf" \

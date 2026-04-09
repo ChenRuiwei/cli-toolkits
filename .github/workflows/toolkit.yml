@@ -119,10 +119,10 @@ jobs:
             "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VER}/ripgrep-${RIPGREP_VER}-x86_64-unknown-linux-musl.tar.gz" \
             1
 
-          # starship
-          download_and_extract "starship" \
+          # starship (single file in tarball, extract directly)
+          download_raw "starship" \
             "https://github.com/starship/starship/releases/download/v${STARSHIP_VER}/starship-x86_64-unknown-linux-musl.tar.gz" \
-            1
+            "starship"
 
           # tealdeer (raw binary)
           download_raw "tealdeer" \

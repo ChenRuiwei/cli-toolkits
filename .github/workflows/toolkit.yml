@@ -37,15 +37,14 @@ jobs:
           DUST_VER="1.2.4"
           EZA_VER="0.23.4"
           FD_VER="10.4.2"
-          LAZYGIT_VER="0.60.0"
+          LAZYGIT_VER="0.61.0"
           LSD_VER="1.2.0"
           RIPGREP_VER="15.1.0"
           STARSHIP_VER="1.24.2"
           TEALDEER_VER="1.8.1"
           YAZI_VER="26.1.22"
-          ZOXIDE_VER="0.9.8"
-          TOKEI_VER="13.2.0"
-          DOTTER_VER="1.1.1"
+          ZOXIDE_VER="0.9.9"
+          DOTTER_VER="0.13.4"
           DIRENV_VER="2.37.1"
           FISH_VER="4.6.0"
           FZF_VER="0.71.0"
@@ -111,7 +110,7 @@ jobs:
 
           # starship (musl)
           echo "⬇️ starship..."
-          curl -fsSL "https://github.com/starship/starship/releases/download/v${STARSHIP_VER}/starship-${STARSHIP_VER}-x86_64-unknown-linux-musl.tar.gz" | tar xz -C $OUT/
+          curl -fsSL "https://github.com/starship/starship/releases/download/v${STARSHIP_VER}/starship-x86_64-unknown-linux-musl.tar.gz" | tar xz -C $OUT/
           mv $OUT/starship $OUT/ 2>/dev/null || true
           rm -rf $OUT/starship-*
 
@@ -133,17 +132,16 @@ jobs:
           mv $OUT/zoxide-$ZOXIDE_VER-x86_64-unknown-linux-musl/zoxide $OUT/ 2>/dev/null || mv $OUT/zoxide $OUT/ 2>/dev/null || true
           rm -rf $OUT/zoxide-*
 
-          # tokei (musl)
+          # tokei (no prebuilt binaries, use cargo install)
           echo "⬇️ tokei..."
-          curl -fsSL "https://github.com/XAMPPRocky/tokei/releases/download/v${TOKEI_VER}/tokei-x86_64-unknown-linux-musl.tar.gz" | tar xz -C $OUT/
-          mv $OUT/tokei $OUT/ 2>/dev/null || true
-          rm -rf $OUT/tokei-*
+          cargo install tokei --locked --root $OUT/ 2>/dev/null || true
+          mv $OUT/bin/tokei $OUT/ 2>/dev/null || true
+          rm -rf $OUT/bin $OUT/lib
 
-          # dotter (musl)
+          # dotter (musl, raw binary)
           echo "⬇️ dotter..."
-          curl -fsSL "https://github.com/dotter-rs/dotter/releases/download/v${DOTTER_VER}/dotter-x86_64-unknown-linux-musl.tar.gz" | tar xz -C $OUT/
-          mv $OUT/dotter $OUT/ 2>/dev/null || true
-          rm -rf $OUT/dotter-*
+          curl -fsSL "https://github.com/SuperCuber/dotter/releases/download/v${DOTTER_VER}/dotter-linux-x64-musl" -o $OUT/dotter
+          chmod +x $OUT/dotter
 
           # direnv (raw binary)
           echo "⬇️ direnv..."

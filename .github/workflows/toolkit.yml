@@ -60,11 +60,11 @@ jobs:
           mv $OUT/bat-$BAT_VER-x86_64-unknown-linux-musl/bat $OUT/ 2>/dev/null || mv $OUT/bat $OUT/ 2>/dev/null || true
           rm -rf $OUT/bat-*
 
-          # btop (musl only, .tbz = tar.bz2)
+          # btop (musl only, .tbz = tar.bz2, binary at btop/bin/btop)
           echo "⬇️ btop..."
           curl -fsSL "https://github.com/aristocratos/btop/releases/download/v${BTOP_VER}/btop-x86_64-unknown-linux-musl.tbz" | tar xj -C $OUT/
-          mv $OUT/btop-$BTOP_VER-x86_64-unknown-linux-musl/btop $OUT/ 2>/dev/null || mv $OUT/btop $OUT/ 2>/dev/null || true
-          rm -rf $OUT/btop-*
+          mv $OUT/btop/bin/btop $OUT/ 2>/dev/null || true
+          rm -rf $OUT/btop
 
           # delta (musl)
           echo "⬇️ delta..."

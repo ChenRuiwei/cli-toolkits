@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPO="thysrael/dotfiles"
+REPO="ChenRuiwei/cli-toolkits"
 
 ARCH=$(uname -m)
 case $ARCH in

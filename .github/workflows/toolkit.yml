@@ -157,15 +157,15 @@ jobs:
             "https://github.com/direnv/direnv/releases/download/v${DIRENV_VER}/direnv.linux-amd64" \
             "direnv"
 
-          # fish
-          download_and_extract "fish" \
+          # fish (single file in tarball, extract directly)
+          download_raw "fish" \
             "https://github.com/fish-shell/fish-shell/releases/download/${FISH_VER}/fish-${FISH_VER}-linux-x86_64.tar.xz" \
-            1
+            "fish"
 
-          # fzf
-          download_and_extract "fzf" \
+          # fzf (single file in tarball, extract directly)
+          download_raw "fzf" \
             "https://github.com/junegunn/fzf/releases/download/v${FZF_VER}/fzf-${FZF_VER}-linux_amd64.tar.gz" \
-            1
+            "fzf"
 
           # neovim
           echo "⬇️ neovim..."

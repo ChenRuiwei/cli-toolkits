@@ -94,10 +94,10 @@ jobs:
             "https://github.com/bootandy/dust/releases/download/v${DUST_VER}/dust-v${DUST_VER}-x86_64-unknown-linux-musl.tar.gz" \
             1
 
-          # eza
-          download_and_extract "eza" \
+          # eza (single file in tarball)
+          download_raw "eza" \
             "https://github.com/eza-community/eza/releases/download/v${EZA_VER}/eza_x86_64-unknown-linux-musl.tar.gz" \
-            1
+            "eza"
 
           # fd
           download_and_extract "fd" \
@@ -136,10 +136,10 @@ jobs:
           mv "$OUT/yazi-x86_64-unknown-linux-musl/yazi" "$OUT/"
           rm -rf "$OUT/yazi-*"
 
-          # zoxide
-          download_and_extract "zoxide" \
+          # zoxide (binary at root, has CHANGELOG/LICENSE/README extra files)
+          download_raw "zoxide" \
             "https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VER}/zoxide-${ZOXIDE_VER}-x86_64-unknown-linux-musl.tar.gz" \
-            1
+            "zoxide"
 
           # tokei (no prebuilt binaries, use cargo install)
           echo "⬇️ tokei..."
@@ -173,10 +173,10 @@ jobs:
           mv nvim-*/bin/nvim "$OUT/"
           rm -rf nvim-*
 
-          # tmux
-          download_and_extract "tmux" \
+          # tmux (single file in tarball)
+          download_raw "tmux" \
             "https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-x86_64.tar.gz" \
-            1
+            "tmux"
 
           echo ""
           echo "📦 Installed tools:"

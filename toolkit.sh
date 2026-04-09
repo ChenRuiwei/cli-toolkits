@@ -38,7 +38,10 @@ echo "=================================================="
 mkdir -p "$DEST"
 
 echo "⬇️ Downloading..."
-curl -L -f -s "$URL" | tar -xz -C "$DEST"
+TMPFILE=$(mktemp)
+curl -L -f --progress-bar "$URL" -o "$TMPFILE"
+tar -xz -C "$DEST" -f "$TMPFILE"
+rm -f "$TMPFILE"
 
 if [ $? -eq 0 ]; then
     echo "✅ Success! Tools installed."

@@ -62,11 +62,13 @@ extract_yazi_from_cache() {
 }
 
 extract_neovim_from_cache() {
-    echo "📦 neovim from cache..."
+    echo "📦 neovim (AppImage) from cache..."
     local tarball="$CACHE_DIR/neovim.tarball"
     TMPDIR=$(mktemp -d)
-    tar -xzf "$tarball" -C "$TMPDIR/"
-    mv "$TMPDIR/nvim-linux-x86_64/bin/nvim" "$INTEGRATION_OUT/"
+    cp "$tarball" "$TMPDIR/nvim.appimage"
+    chmod +x "$TMPDIR/nvim.appimage"
+    mv "$TMPDIR/nvim.appimage" "$INTEGRATION_OUT/"
+    ln -s nvim.appimage "$INTEGRATION_OUT/nvim"
     rm -rf "$TMPDIR"
 }
 
@@ -93,6 +95,7 @@ extract_from_cache "lsd" "lsd" 1
 extract_from_cache "rg" "rg" 1
 extract_from_cache "starship" "starship" 0
 copy_raw_from_cache "tealdeer"
+ln -s tealdeer "$INTEGRATION_OUT/tldr"
 extract_yazi_from_cache
 extract_from_cache "zoxide" "zoxide" 0
 echo "(tokei skipped - cargo install)"
@@ -109,7 +112,7 @@ ls -la "$INTEGRATION_OUT/"
 
 echo ""
 echo "📦 Verifying all tools are in bin..."
-REQUIRED_TOOLS="bat btop delta dust eza fd fish fzf lazygit lsd nvim rg starship tealdeer tmux dotter yazi zoxide direnv"
+REQUIRED_TOOLS="bat btop delta dust eza fd fish fzf lazygit lsd nvim nvim.appimage rg starship tealdeer tldr tmux dotter yazi zoxide direnv"
 ALL_FOUND=true
 for tool in $REQUIRED_TOOLS; do
     if [ -x "$INTEGRATION_OUT/$tool" ]; then

@@ -131,6 +131,7 @@ jobs:
           download_raw "tealdeer" \
             "https://github.com/tealdeer-rs/tealdeer/releases/download/v${TEALDEER_VER}/tealdeer-linux-x86_64-musl" \
             "tealdeer"
+          ln -s tealdeer "$OUT/tldr"
 
           echo "⬇️ yazi..."
           TMPDIR=$(mktemp -d)
@@ -164,11 +165,10 @@ jobs:
             "https://github.com/junegunn/fzf/releases/download/v${FZF_VER}/fzf-${FZF_VER}-linux_amd64.tar.gz" \
             "fzf" 0
 
-          echo "⬇️ neovim..."
-          TMPDIR=$(mktemp -d)
-          curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-x86_64.tar.gz" | tar xz -C "$TMPDIR/"
-          mv "$TMPDIR/nvim-linux-x86_64/bin/nvim" "$OUT/"
-          rm -rf "$TMPDIR"
+          echo "⬇️ neovim (AppImage)..."
+          curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim.appimage" -o "$OUT/nvim.appimage"
+          chmod +x "$OUT/nvim.appimage"
+          ln -s nvim.appimage "$OUT/nvim"
 
           extract_single "tmux" \
             "https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-x86_64.tar.gz" \

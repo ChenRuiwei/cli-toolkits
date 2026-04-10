@@ -590,28 +590,30 @@ test_binary_works "fzf" "$TEST_BIN/fzf" "--version"
 echo ""
 
 # =============================================================================
-# TEST 18: neovim
+# TEST 18: neovim (AppImage)
 # =============================================================================
-log_info "Testing neovim..."
-NEOVIM_URL="https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-x86_64.tar.gz"
+log_info "Testing neovim (AppImage)..."
+NEOVIM_URL="https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim.appimage"
 test_url_accessible "neovim" "$NEOVIM_URL"
 NEOVIM_TARBALL=$(download_cached "neovim" "$NEOVIM_URL")
-# neovim has structure: nvim-*/bin/nvim
+# neovim AppImage is downloaded directly
 TEST_DIR="$CACHE_DIR/test-neovim"
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
-tar -xzf "$NEOVIM_TARBALL" -C "$TEST_DIR"
-if ls "$TEST_DIR/nvim-"*/bin/nvim 2>/dev/null; then
-    NEOVIM_BIN=$(ls "$TEST_DIR/nvim-"*/bin/nvim | head -1)
-    log_pass "neovim tarball structure is valid (nvim-*/bin/nvim)"
-    mv "$NEOVIM_BIN" "$TEST_BIN/"
-    rm -rf "$TEST_DIR/nvim-"*
+if curl -fsSL "$NEOVIM_URL" -o "$TEST_DIR/nvim.appimage"; then
+    chmod +x "$TEST_DIR/nvim.appimage"
+    if file "$TEST_DIR/nvim.appimage" | grep -q "ELF\|AppImage"; then
+        log_pass "neovim AppImage is valid"
+        mv "$TEST_DIR/nvim.appimage" "$TEST_BIN/"
+        ln -s nvim.appimage "$TEST_BIN/nvim"
+    else
+        log_fail "neovim AppImage is not valid"
+    fi
 else
-    log_fail "neovim tarball missing nvim-*/bin/nvim"
-    ls -la "$TEST_DIR/" 2>/dev/null || true
+    log_fail "neovim AppImage download failed"
 fi
 rm -rf "$TEST_DIR"
-test_binary_works "neovim" "$TEST_BIN/nvim" "--version"
+test_binary_works "neovim" "$TEST_BIN/nvim.appimage" "--version"
 echo ""
 
 # =============================================================================

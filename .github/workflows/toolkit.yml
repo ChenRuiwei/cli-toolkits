@@ -44,7 +44,6 @@ jobs:
           TEALDEER_VER="1.8.1"
           YAZI_VER="26.1.22"
           ZOXIDE_VER="0.9.9"
-          TREESITTER_VER="0.26.8"
           DOTTER_VER="0.13.4"
           DIRENV_VER="2.37.1"
           FISH_VER="4.6.0"
@@ -145,14 +144,6 @@ jobs:
             "https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VER}/zoxide-${ZOXIDE_VER}-x86_64-unknown-linux-musl.tar.gz" \
             "zoxide" 0
 
-          echo "⬇️ tree-sitter-cli..."
-          TMPDIR=$(mktemp -d)
-          curl -fsSL "https://github.com/tree-sitter/tree-sitter/releases/download/v${TREESITTER_VER}/tree-sitter-cli-linux-x64.zip" -o "$TMPDIR/tree-sitter.zip"
-          unzip -o "$TMPDIR/tree-sitter.zip" -d "$TMPDIR/"
-          mv "$TMPDIR/tree-sitter" "$OUT/"
-          chmod +x "$OUT/tree-sitter"
-          rm -rf "$TMPDIR"
-
           download_raw "dotter" \
             "https://github.com/SuperCuber/dotter/releases/download/v${DOTTER_VER}/dotter-linux-x64-musl" \
             "dotter"
@@ -189,7 +180,7 @@ jobs:
 
           echo ""
           echo "📦 Verifying all tools..."
-          for tool in bat btop delta dust eza fd fish fzf lazygit lsd nvim rg starship tealdeer tmux tokei dotter yazi zoxide direnv tree-sitter; do
+          for tool in bat btop delta dust eza fd fish fzf lazygit lsd nvim rg starship tealdeer tmux tokei dotter yazi zoxide direnv; do
             if [ -x "$OUT/$tool" ]; then
               echo "  ✅ $tool"
             else

@@ -61,16 +61,6 @@ extract_yazi_from_cache() {
     rm -rf "$TMPDIR"
 }
 
-extract_tree_sitter_from_cache() {
-    echo "📦 tree-sitter-cli from cache..."
-    local tarball="$CACHE_DIR/tree-sitter-cli.tarball"
-    TMPDIR=$(mktemp -d)
-    unzip -o "$tarball" -d "$TMPDIR/"
-    mv "$TMPDIR/tree-sitter" "$INTEGRATION_OUT/"
-    chmod +x "$INTEGRATION_OUT/tree-sitter"
-    rm -rf "$TMPDIR"
-}
-
 extract_neovim_from_cache() {
     echo "📦 neovim (AppImage) from cache..."
     local tarball="$CACHE_DIR/neovim.tarball"
@@ -107,7 +97,6 @@ extract_from_cache "starship" "starship" 0
 copy_raw_from_cache "tealdeer"
 ln -s tealdeer "$INTEGRATION_OUT/tldr"
 extract_yazi_from_cache
-extract_tree_sitter_from_cache
 extract_from_cache "zoxide" "zoxide" 0
 copy_raw_from_cache "dotter"
 copy_raw_from_cache "direnv"
@@ -123,7 +112,7 @@ ls -la "$INTEGRATION_OUT/"
 
 echo ""
 echo "📦 Verifying all tools are in bin..."
-REQUIRED_TOOLS="bat btop delta dust eza fd fish fzf lazygit lsd nvim nvim.appimage rg starship tealdeer tldr tmux dotter yazi zoxide direnv tree-sitter"
+REQUIRED_TOOLS="bat btop delta dust eza fd fish fzf lazygit lsd nvim nvim.appimage rg starship tealdeer tldr tmux dotter yazi zoxide direnv"
 ALL_FOUND=true
 for tool in $REQUIRED_TOOLS; do
     if [ -x "$INTEGRATION_OUT/$tool" ]; then
@@ -166,7 +155,6 @@ test_tool "neovim" "nvim"
 test_tool "rg (ripgrep)" "rg"
 test_tool "starship" "starship"
 test_tool "tealdeer" "tealdeer"
-test_tool "tree-sitter-cli" "tree-sitter" "--version"
 test_tool "tmux" "tmux" "-V"
 test_tool "dotter" "dotter"
 test_tool "yazi" "yazi"

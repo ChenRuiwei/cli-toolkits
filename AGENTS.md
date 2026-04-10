@@ -34,7 +34,6 @@ CLI toolkit installer with GitHub Actions build system. Downloads prebuilt binar
 | btop | special tar.bz2 | btop/bin/{binary} |
 | neovim | AppImage | nvim.appimage + nvim symlink |
 | yazi | unzip | zip/{binary} |
-| tree-sitter-cli | unzip | zip/{binary} |
 | tealdeer, dotter, direnv | `download_raw` | direct binary |
 | tokei | cargo install | special |
 
@@ -102,7 +101,7 @@ TOOLKIT_CACHE_DIR="$HOME/.cache/toolkit-test" bash .github/workflows/tests/toolk
 ```
 
 ## NOTES
-- 21 tools: bat, btop, delta, dust, eza, fd, fish, fzf, lazygit, lsd, neovim, rg, starship, tealdeer, tmux, tokei, dotter, yazi, zoxide, direnv, tree-sitter-cli
+- 20 tools: bat, btop, delta, dust, eza, fd, fish, fzf, lazygit, lsd, neovim, rg, starship, tealdeer, tmux, tokei, dotter, yazi, zoxide, direnv
 - Binary names match tool names except: ripgrep→rg, neovim→nvim
 - neovim uses AppImage with symlink: nvim → nvim.appimage
 - tealdeer provides tldr symlink: tldr → tealdeer

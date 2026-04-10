@@ -68,6 +68,7 @@ if [ $? -eq 0 ]; then
     echo "dotter:   $("$DEST/dotter" --version 2>/dev/null | head -n 1 || echo "N/A")"
     echo "yazi:     $("$DEST/yazi" --version 2>/dev/null | head -n 1 || echo "N/A")"
     echo "zoxide:   $("$DEST/zoxide" --version 2>/dev/null | head -n 1 || echo "N/A")"
+    echo "tree-sitter-cli: $($DEST/tree-sitter --version 2>/dev/null || echo "N/A")"
 else
     echo "❌ Deployment failed."
     echo "   Please check if version '$VERSION' exists in Release page."

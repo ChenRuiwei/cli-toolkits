@@ -48,11 +48,12 @@ Before ANY change to `toolkit.yml`:
 4. Only modify `toolkit.yml` AFTER both tests pass
 5. Commit and push only after tests pass
 
-### 2. Keep yml and Tests in Sync (1:1 Correspondence)
-Every tool in `toolkit.yml` MUST have a corresponding test in BOTH test scripts.
-When you modify a tool's packaging in `toolkit.yml`, you MUST update:
+### 2. Keep yml, Tests, and toolkit.sh in Sync (1:1 Correspondence)
+Every tool in `toolkit.yml` MUST have a corresponding test in BOTH test scripts AND a version check in `toolkit.sh`.
+When you modify a tool in `toolkit.yml`, you MUST update:
 - `toolkit-unit-tests.sh` - URL test + structure test + binary test
 - `toolkit-integration-test.sh` - extract logic + verification
+- `toolkit.sh` - version check echo line
 
 If they don't match 1:1, something is wrong.
 

@@ -1,7 +1,7 @@
 # DOTFILES / CLI-TOOLKITS
 
 **Generated:** 2026-04-10
-**Commit:** e25a584
+**Commit:** fb67192
 **Branch:** main
 
 ## OVERVIEW
@@ -37,7 +37,29 @@ CLI toolkit installer with GitHub Actions build system. Downloads prebuilt binar
 | tealdeer, dotter, direnv | `download_raw` | direct binary |
 | tokei | cargo install | special |
 
-## WORKFLOW MODIFICATION RULES
+## WORKFLOW RULES (MANDATORY)
+
+### 1. Modify toolkit.yml Only After Tests Pass
+Before ANY change to `toolkit.yml`:
+1. Verify URL accessibility with `curl -sfI <url>`
+2. Run unit tests: `TOOLKIT_CACHE_DIR="$HOME/.cache/toolkit-test" bash .github/workflows/tests/toolkit-unit-tests.sh`
+3. Run integration tests: `TOOLKIT_CACHE_DIR="$HOME/.cache/toolkit-test" bash .github/workflows/tests/toolkit-integration-test.sh`
+4. Only modify `toolkit.yml` AFTER both tests pass
+5. Commit and push only after tests pass
+
+### 2. Keep yml and Tests in Sync (1:1 Correspondence)
+Every tool in `toolkit.yml` MUST have a corresponding test in BOTH test scripts.
+When you modify a tool's packaging in `toolkit.yml`, you MUST update:
+- `toolkit-unit-tests.sh` - URL test + structure test + binary test
+- `toolkit-integration-test.sh` - extract logic + verification
+
+If they don't match 1:1, something is wrong.
+
+### 3. Preserve Tarball Cache During Testing
+- Do NOT clear `~/.cache/toolkit-test/` between test runs
+- Do NOT re-download tarballs unnecessarily
+- The cache is intentional - reuse it to speed up testing
+- If you need a fresh start: only clear `test-bin/` and `integration-bin/`, not the tarballs
 
 ### URL Verification (CRITICAL)
 Before modifying `toolkit.yml` with a new or changed URL:
@@ -47,9 +69,14 @@ Before modifying `toolkit.yml` with a new or changed URL:
 
 Example workflow:
 ```bash
-# Verify before editing
+# 1. Verify URL first
 curl -sfI "https://github.com/neovim/neovim/releases/download/v0.12.1/nvim-linux-x86_64.appimage"
-# If 200 OK, safe to proceed
+
+# 2. Run tests (cache is reused, no re-download)
+TOOLKIT_CACHE_DIR="$HOME/.cache/toolkit-test" bash .github/workflows/tests/toolkit-unit-tests.sh
+TOOLKIT_CACHE_DIR="$HOME/.cache/toolkit-test" bash .github/workflows/tests/toolkit-integration-test.sh
+
+# 3. Only after tests pass, modify toolkit.yml
 ```
 
 ## CONVENTIONS
@@ -75,3 +102,5 @@ curl -sfI "https://github.com/neovim/neovim/releases/download/v0.12.1/nvim-linux
 ## NOTES
 - 20 tools: bat, btop, delta, dust, eza, fd, fish, fzf, lazygit, lsd, neovim, rg, starship, tealdeer, tmux, tokei, dotter, yazi, zoxide, direnv
 - Binary names match tool names except: ripgrep→rg, neovim→nvim
+- neovim uses AppImage with symlink: nvim → nvim.appimage
+- tealdeer provides tldr symlink: tldr → tealdeer

@@ -31,6 +31,7 @@ STARSHIP_VER="1.24.2"
 TEALDEER_VER="1.8.1"
 YAZI_VER="26.1.22"
 ZOXIDE_VER="0.9.9"
+TREESITTER_VER="0.26.8"
 DOTTER_VER="0.13.4"
 DIRENV_VER="2.37.1"
 FISH_VER="4.6.0"
@@ -503,7 +504,30 @@ test_binary_works "zoxide" "$TEST_BIN/zoxide" "--version"
 echo ""
 
 # =============================================================================
-# TEST 14: dotter
+# TEST 14: tree-sitter-cli
+# =============================================================================
+log_info "Testing tree-sitter-cli..."
+TREESITTER_URL="https://github.com/tree-sitter/tree-sitter/releases/download/v${TREESITTER_VER}/tree-sitter-cli-linux-x64.zip"
+test_url_accessible "tree-sitter-cli" "$TREESITTER_URL"
+TREESITTER_TARBALL=$(download_cached "tree-sitter-cli" "$TREESITTER_URL")
+TEST_DIR="$CACHE_DIR/test-tree-sitter"
+rm -rf "$TEST_DIR"
+mkdir -p "$TEST_DIR"
+unzip -o "$TREESITTER_TARBALL" -d "$TEST_DIR" 2>/dev/null
+if [ -f "$TEST_DIR/tree-sitter" ]; then
+    log_pass "tree-sitter-cli zip structure is valid (tree-sitter binary at root)"
+    mv "$TEST_DIR/tree-sitter" "$TEST_BIN/"
+    chmod +x "$TEST_BIN/tree-sitter"
+else
+    log_fail "tree-sitter-cli zip missing tree-sitter binary"
+    ls -la "$TEST_DIR/" 2>/dev/null || true
+fi
+rm -rf "$TEST_DIR"
+test_binary_works "tree-sitter-cli" "$TEST_BIN/tree-sitter" "--version"
+echo ""
+
+# =============================================================================
+# TEST 15: dotter
 # =============================================================================
 log_info "Testing dotter..."
 DOTTER_URL="https://github.com/SuperCuber/dotter/releases/download/v${DOTTER_VER}/dotter-linux-x64-musl"
@@ -529,7 +553,7 @@ test_binary_works "dotter" "$TEST_BIN/dotter" "--version"
 echo ""
 
 # =============================================================================
-# TEST 15: direnv
+# TEST 16: direnv
 # =============================================================================
 log_info "Testing direnv..."
 DIRENV_URL="https://github.com/direnv/direnv/releases/download/v${DIRENV_VER}/direnv.linux-amd64"
@@ -555,7 +579,7 @@ test_binary_works "direnv" "$TEST_BIN/direnv" "--version"
 echo ""
 
 # =============================================================================
-# TEST 16: fish
+# TEST 17: fish
 # =============================================================================
 log_info "Testing fish..."
 FISH_URL="https://github.com/fish-shell/fish-shell/releases/download/${FISH_VER}/fish-${FISH_VER}-linux-x86_64.tar.xz"
@@ -577,7 +601,7 @@ test_binary_works "fish" "$TEST_BIN/fish" "--version"
 echo ""
 
 # =============================================================================
-# TEST 17: fzf
+# TEST 18: fzf
 # =============================================================================
 log_info "Testing fzf..."
 FZF_URL="https://github.com/junegunn/fzf/releases/download/v${FZF_VER}/fzf-${FZF_VER}-linux_amd64.tar.gz"

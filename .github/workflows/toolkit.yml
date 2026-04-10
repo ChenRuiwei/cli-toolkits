@@ -144,11 +144,6 @@ jobs:
             "https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VER}/zoxide-${ZOXIDE_VER}-x86_64-unknown-linux-musl.tar.gz" \
             "zoxide" 0
 
-          echo "⬇️ tokei..."
-          cargo install tokei --locked --root "$OUT/"
-          mv "$OUT/bin/tokei" "$OUT/"
-          rm -rf "$OUT/bin" "$OUT/lib"
-
           download_raw "dotter" \
             "https://github.com/SuperCuber/dotter/releases/download/v${DOTTER_VER}/dotter-linux-x64-musl" \
             "dotter"
@@ -173,6 +168,11 @@ jobs:
           extract_single "tmux" \
             "https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-x86_64.tar.gz" \
             "tmux" 0
+
+          echo "⬇️ tokei (via cargo - last due to compile time)..."
+          cargo install tokei --locked --root "$OUT/"
+          mv "$OUT/bin/tokei" "$OUT/"
+          rm -rf "$OUT/bin" "$OUT/lib" "$OUT/.crates.toml" "$OUT/.crates2.json"
 
           echo ""
           echo "📦 Installed tools:"

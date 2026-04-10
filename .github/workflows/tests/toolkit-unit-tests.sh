@@ -590,13 +590,12 @@ test_binary_works "fzf" "$TEST_BIN/fzf" "--version"
 echo ""
 
 # =============================================================================
-# TEST 18: neovim (AppImage)
+# TEST 19: neovim (AppImage)
 # =============================================================================
 log_info "Testing neovim (AppImage)..."
 NEOVIM_URL="https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-x86_64.appimage"
 test_url_accessible "neovim" "$NEOVIM_URL"
 NEOVIM_TARBALL=$(download_cached "neovim" "$NEOVIM_URL")
-# neovim AppImage is downloaded directly
 TEST_DIR="$CACHE_DIR/test-neovim"
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
@@ -617,22 +616,21 @@ test_binary_works "neovim" "$TEST_BIN/nvim.appimage" "--version"
 echo ""
 
 # =============================================================================
-# TEST 19: tmux
+# TEST 20: tmux
 # =============================================================================
 log_info "Testing tmux..."
 TMUX_URL="https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-x86_64.tar.gz"
 test_url_accessible "tmux" "$TMUX_URL"
 TMUX_TARBALL=$(download_cached "tmux" "$TMUX_URL")
-# tmux has binary at root
 test_tarball_structure "tmux" "$TMUX_TARBALL" 0 "tmux" "tar_gz"
 extract_to_bin "tmux" "$TMUX_TARBALL" 0 "tmux" "tar_gz" "$TEST_BIN"
 test_binary_works "tmux" "$TEST_BIN/tmux" "-V"
 echo ""
 
 # =============================================================================
-# TEST 20: tokei (skip URL test - installed via cargo)
+# TEST 21: tokei (last - cargo install is slow)
 # =============================================================================
-log_info "Testing tokei (cargo install - special case)..."
+log_info "Testing tokei (cargo install - last due to compile time)..."
 log_warn "tokei is installed via cargo, skipping URL test"
 log_pass "tokei marked as cargo-install tool"
 echo ""

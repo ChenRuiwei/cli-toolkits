@@ -98,13 +98,13 @@ copy_raw_from_cache "tealdeer"
 ln -s tealdeer "$INTEGRATION_OUT/tldr"
 extract_yazi_from_cache
 extract_from_cache "zoxide" "zoxide" 0
-echo "(tokei skipped - cargo install)"
 copy_raw_from_cache "dotter"
 copy_raw_from_cache "direnv"
 extract_xz_from_cache "fish" "fish" 0
 extract_from_cache "fzf" "fzf" 0
 extract_neovim_from_cache
 extract_from_cache "tmux" "tmux" 0
+echo "(tokei skipped - cargo install)"
 
 echo ""
 echo "📦 Installed tools:"

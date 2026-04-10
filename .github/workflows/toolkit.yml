@@ -166,7 +166,7 @@ jobs:
             "fzf" 0
 
           echo "⬇️ neovim (AppImage)..."
-          curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim.appimage" -o "$OUT/nvim.appimage"
+          curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-x86_64.appimage" -o "$OUT/nvim.appimage"
           chmod +x "$OUT/nvim.appimage"
           ln -s nvim.appimage "$OUT/nvim"
 

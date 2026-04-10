@@ -593,7 +593,7 @@ echo ""
 # TEST 18: neovim (AppImage)
 # =============================================================================
 log_info "Testing neovim (AppImage)..."
-NEOVIM_URL="https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim.appimage"
+NEOVIM_URL="https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-x86_64.appimage"
 test_url_accessible "neovim" "$NEOVIM_URL"
 NEOVIM_TARBALL=$(download_cached "neovim" "$NEOVIM_URL")
 # neovim AppImage is downloaded directly

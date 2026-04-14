@@ -18,7 +18,7 @@ jobs:
         id: date
         run: echo "date=v$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
 
-  build:
+  build-amd64:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -84,7 +84,7 @@ jobs:
             chmod +x "$dest"
           }
 
-          echo "🚀 Downloading prebuilt binaries..."
+          echo "🚀 Downloading prebuilt binaries (amd64)..."
 
           extract_single "bat" \
             "https://github.com/sharkdp/bat/releases/download/v${BAT_VER}/bat-v${BAT_VER}-x86_64-unknown-linux-musl.tar.gz" \
@@ -202,8 +202,192 @@ jobs:
           name: toolkit-amd64
           path: ${{ env.TAR_NAME }}
 
+  build-arm64:
+    needs: prepare
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download tools
+        run: |
+          set -euo pipefail
+          OUT="bin"
+          mkdir -p "$OUT"
+
+          BAT_VER="0.26.1"
+          BTOP_VER="1.4.6"
+          DELTA_VER="0.19.2"
+          DUST_VER="1.2.4"
+          EZA_VER="0.23.4"
+          FD_VER="10.4.2"
+          LAZYGIT_VER="0.61.0"
+          LSD_VER="1.2.0"
+          RIPGREP_VER="15.1.0"
+          STARSHIP_VER="1.24.2"
+          TEALDEER_VER="1.8.1"
+          YAZI_VER="26.1.22"
+          ZOXIDE_VER="0.9.9"
+          DOTTER_VER="0.13.4"
+          DIRENV_VER="2.37.1"
+          FISH_VER="4.6.0"
+          FZF_VER="0.71.0"
+          NEOVIM_VER="0.12.1"
+          TMUX_VER="3.6a"
+
+          extract_single() {
+            local name="$1"
+            local url="$2"
+            local binary="$3"
+            local strip="${4:-1}"
+            echo "⬇️ $name..."
+            TMPDIR=$(mktemp -d)
+            curl -fsSL "$url" | tar xz -C "$TMPDIR/" --strip-components="$strip"
+            mv "$TMPDIR/$binary" "$OUT/"
+            rm -rf "$TMPDIR"
+          }
+
+          extract_xz_single() {
+            local name="$1"
+            local url="$2"
+            local binary="$3"
+            local strip="${4:-1}"
+            echo "⬇️ $name..."
+            TMPDIR=$(mktemp -d)
+            curl -fsSL "$url" | tar xJ -C "$TMPDIR/" --strip-components="$strip"
+            mv "$TMPDIR/$binary" "$OUT/"
+            rm -rf "$TMPDIR"
+          }
+
+          download_raw() {
+            local name="$1"
+            local url="$2"
+            local dest="$OUT/$3"
+            echo "⬇️ $name..."
+            curl -fsSL "$url" -o "$dest"
+            chmod +x "$dest"
+          }
+
+          echo "🚀 Downloading prebuilt binaries (arm64)..."
+
+          extract_single "bat" \
+            "https://github.com/sharkdp/bat/releases/download/v${BAT_VER}/bat-v${BAT_VER}-aarch64-unknown-linux-musl.tar.gz" \
+            "bat" 1
+
+          echo "⬇️ btop..."
+          TMPDIR=$(mktemp -d)
+          curl -fsSL "https://github.com/aristocratos/btop/releases/download/v${BTOP_VER}/btop-aarch64-unknown-linux-musl.tbz" | tar xj -C "$TMPDIR/"
+          mv "$TMPDIR/btop/bin/btop" "$OUT/"
+          rm -rf "$TMPDIR"
+
+          extract_single "delta" \
+            "https://github.com/dandavison/delta/releases/download/${DELTA_VER}/delta-${DELTA_VER}-aarch64-unknown-linux-musl.tar.gz" \
+            "delta" 1
+
+          extract_single "dust" \
+            "https://github.com/bootandy/dust/releases/download/v${DUST_VER}/dust-v${DUST_VER}-aarch64-unknown-linux-musl.tar.gz" \
+            "dust" 1
+
+          extract_single "eza" \
+            "https://github.com/eza-community/eza/releases/download/v${EZA_VER}/eza_aarch64-unknown-linux-musl.tar.gz" \
+            "eza" 0
+
+          extract_single "fd" \
+            "https://github.com/sharkdp/fd/releases/download/v${FD_VER}/fd-v${FD_VER}-aarch64-unknown-linux-musl.tar.gz" \
+            "fd" 1
+
+          extract_single "lazygit" \
+            "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VER}/lazygit_${LAZYGIT_VER}_linux_arm64.tar.gz" \
+            "lazygit" 0
+
+          extract_single "lsd" \
+            "https://github.com/lsd-rs/lsd/releases/download/v${LSD_VER}/lsd-v${LSD_VER}-aarch64-unknown-linux-musl.tar.gz" \
+            "lsd" 1
+
+          extract_single "ripgrep" \
+            "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VER}/ripgrep-${RIPGREP_VER}-aarch64-unknown-linux-musl.tar.gz" \
+            "rg" 1
+
+          extract_single "starship" \
+            "https://github.com/starship/starship/releases/download/v${STARSHIP_VER}/starship-aarch64-unknown-linux-musl.tar.gz" \
+            "starship" 0
+
+          download_raw "tealdeer" \
+            "https://github.com/tealdeer-rs/tealdeer/releases/download/v${TEALDEER_VER}/tealdeer-linux-aarch64-musl" \
+            "tealdeer"
+          ln -s tealdeer "$OUT/tldr"
+
+          echo "⬇️ yazi..."
+          TMPDIR=$(mktemp -d)
+          curl -fsSL "https://github.com/sxyazi/yazi/releases/download/v${YAZI_VER}/yazi-aarch64-unknown-linux-musl.zip" -o "$TMPDIR/yazi.zip"
+          unzip -o "$TMPDIR/yazi.zip" -d "$TMPDIR/"
+          mv "$TMPDIR/yazi-aarch64-unknown-linux-musl/yazi" "$OUT/"
+          rm -rf "$TMPDIR"
+
+          extract_single "zoxide" \
+            "https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VER}/zoxide-${ZOXIDE_VER}-aarch64-unknown-linux-musl.tar.gz" \
+            "zoxide" 0
+
+          download_raw "dotter" \
+            "https://github.com/SuperCuber/dotter/releases/download/v${DOTTER_VER}/dotter-linux-aarch64-musl" \
+            "dotter"
+
+          download_raw "direnv" \
+            "https://github.com/direnv/direnv/releases/download/v${DIRENV_VER}/direnv.linux-arm64" \
+            "direnv"
+
+          extract_xz_single "fish" \
+            "https://github.com/fish-shell/fish-shell/releases/download/${FISH_VER}/fish-${FISH_VER}-linux-aarch64.tar.xz" \
+            "fish" 0
+
+          extract_single "fzf" \
+            "https://github.com/junegunn/fzf/releases/download/v${FZF_VER}/fzf-${FZF_VER}-linux_arm64.tar.gz" \
+            "fzf" 0
+
+          echo "⬇️ neovim (AppImage)..."
+          curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-aarch64.appimage" -o "$OUT/nvim.appimage"
+          chmod +x "$OUT/nvim.appimage"
+          ln -s nvim.appimage "$OUT/nvim"
+
+          extract_single "tmux" \
+            "https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-aarch64.tar.gz" \
+            "tmux" 0
+
+          echo "⬇️ tokei (via cargo - last due to compile time)..."
+          cargo install tokei --locked --root "$OUT/"
+          mv "$OUT/bin/tokei" "$OUT/"
+          rm -rf "$OUT/bin" "$OUT/lib" "$OUT/.crates.toml" "$OUT/.crates2.json"
+
+          echo ""
+          echo "📦 Installed tools:"
+          ls -la "$OUT/"
+
+          echo ""
+          echo "📦 Verifying all tools..."
+          for tool in bat btop delta dust eza fd fish fzf lazygit lsd nvim rg starship tealdeer tmux tokei dotter yazi zoxide direnv; do
+            if [ -x "$OUT/$tool" ]; then
+              echo "  ✅ $tool"
+            else
+              echo "  ❌ $tool - MISSING!"
+              exit 1
+            fi
+          done
+
+          echo ""
+          echo "📦 Compressing..."
+          TAR_NAME="toolkit-arm64.tar.gz"
+          tar -czvf "$TAR_NAME" -C "$OUT" .
+
+          echo "TAR_NAME=$TAR_NAME" >> $GITHUB_ENV
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolkit-arm64
+          path: ${{ env.TAR_NAME }}
+
   release:
-    needs: [prepare, build]
+    needs: [prepare, build-amd64, build-arm64]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts

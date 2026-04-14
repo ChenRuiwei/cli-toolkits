@@ -281,7 +281,7 @@ jobs:
           rm -rf "$TMPDIR"
 
           extract_single "delta" \
-            "https://github.com/dandavison/delta/releases/download/${DELTA_VER}/delta-${DELTA_VER}-aarch64-unknown-linux-musl.tar.gz" \
+            "https://github.com/dandavison/delta/releases/download/${DELTA_VER}/delta-${DELTA_VER}-aarch64-unknown-linux-gnu.tar.gz" \
             "delta" 1
 
           extract_single "dust" \
@@ -289,7 +289,7 @@ jobs:
             "dust" 1
 
           extract_single "eza" \
-            "https://github.com/eza-community/eza/releases/download/v${EZA_VER}/eza_aarch64-unknown-linux-musl.tar.gz" \
+            "https://github.com/eza-community/eza/releases/download/v${EZA_VER}/eza_aarch64-unknown-linux-gnu.tar.gz" \
             "eza" 0
 
           extract_single "fd" \
@@ -305,7 +305,7 @@ jobs:
             "lsd" 1
 
           extract_single "ripgrep" \
-            "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VER}/ripgrep-${RIPGREP_VER}-aarch64-unknown-linux-musl.tar.gz" \
+            "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VER}/ripgrep-${RIPGREP_VER}-aarch64-unknown-linux-gnu.tar.gz" \
             "rg" 1
 
           extract_single "starship" \
@@ -329,7 +329,7 @@ jobs:
             "zoxide" 0
 
           download_raw "dotter" \
-            "https://github.com/SuperCuber/dotter/releases/download/v${DOTTER_VER}/dotter-linux-aarch64-musl" \
+            "https://github.com/SuperCuber/dotter/releases/download/v${DOTTER_VER}/dotter-linux-arm64-musl" \
             "dotter"
 
           download_raw "direnv" \
@@ -345,12 +345,12 @@ jobs:
             "fzf" 0
 
           echo "⬇️ neovim (AppImage)..."
-          curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-aarch64.appimage" -o "$OUT/nvim.appimage"
+          curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-arm64.appimage" -o "$OUT/nvim.appimage"
           chmod +x "$OUT/nvim.appimage"
           ln -s nvim.appimage "$OUT/nvim"
 
           extract_single "tmux" \
-            "https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-aarch64.tar.gz" \
+            "https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-arm64.tar.gz" \
             "tmux" 0
 
           echo "⬇️ tokei (via cargo - last due to compile time)..."

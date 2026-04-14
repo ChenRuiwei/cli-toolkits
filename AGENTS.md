@@ -64,20 +64,27 @@ If they don't match 1:1, something is wrong.
 
 ### URL Verification (CRITICAL)
 Before modifying `toolkit.yml` with a new or changed URL:
-1. **Always verify URL is accessible** with `curl -sfI <url>` first
-2. **Check the exact filename** in the release - GitHub release assets use specific naming patterns (e.g., `nvim-linux-x86_64.appimage`, NOT `nvim.appimage`)
-3. **Document the correct URL** in your edit
+1. **Always verify URL actually returns content** - GitHub may return HTTP 200 for non-existent assets via CDN redirect, giving false positives
+2. **Use `curl -sL -o /dev/null -w "%{http_code}"` to follow redirects and get the real status**
+3. **Check the exact filename** in the release page or expanded assets - naming varies by tool:
+   - Rust projects: often `aarch64-unknown-linux-musl` (musl) or `aarch64-unknown-linux-gnu` (gnu)
+   - Go projects: often `linux_arm64` or `linux-arm64`
+   - Some tools (dotter, tmux, neovim): use `arm64` NOT `aarch64`
+4. **Document the correct URL** in your edit
 
 Example workflow:
 ```bash
-# 1. Verify URL first
-curl -sfI "https://github.com/neovim/neovim/releases/download/v0.12.1/nvim-linux-x86_64.appimage"
+# 1. Verify URL returns 200 after following redirects (NOT just curl -sfI which can lie)
+curl -sL -o /dev/null -w "%{http_code}" "https://github.com/neovim/neovim/releases/download/v0.12.1/nvim-linux-arm64.appimage"
 
-# 2. Run tests (cache is reused, no re-download)
+# 2. Find actual ARM64 asset names from expanded_assets page:
+curl -sL "https://github.com/USER/REPO/releases/expanded_assets/VERSION" | grep -o 'FILENAME.*aarch64.*' | sort -u
+
+# 3. Run tests (cache is reused, no re-download)
 TOOLKIT_CACHE_DIR="$HOME/.cache/toolkit-test" bash .github/workflows/tests/toolkit-unit-tests.sh
 TOOLKIT_CACHE_DIR="$HOME/.cache/toolkit-test" bash .github/workflows/tests/toolkit-integration-test.sh
 
-# 3. Only after tests pass, modify toolkit.yml
+# 4. Only after tests pass, modify toolkit.yml
 ```
 
 ## CONVENTIONS

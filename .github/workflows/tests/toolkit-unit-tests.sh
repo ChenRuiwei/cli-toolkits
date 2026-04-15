@@ -28,6 +28,7 @@ LAZYGIT_VER="0.61.0"
 LSD_VER="1.2.0"
 RIPGREP_VER="15.1.0"
 STARSHIP_VER="1.24.2"
+JUST_VER="1.49.0"
 TEALDEER_VER="1.8.1"
 YAZI_VER="26.1.22"
           ZOXIDE_VER="0.9.9"
@@ -396,6 +397,18 @@ LAZYGIT_TARBALL=$(download_cached "lazygit" "$LAZYGIT_URL")
 test_tarball_structure "lazygit" "$LAZYGIT_TARBALL" 0 "lazygit" "tar_gz"
 extract_to_bin "lazygit" "$LAZYGIT_TARBALL" 0 "lazygit" "tar_gz" "$TEST_BIN"
 test_binary_works "lazygit" "$TEST_BIN/lazygit" "--version"
+echo ""
+
+# =============================================================================
+# TEST 7.5: just
+# =============================================================================
+log_info "Testing just..."
+JUST_URL="https://github.com/casey/just/releases/download/${JUST_VER}/just-${JUST_VER}-x86_64-unknown-linux-musl.tar.gz"
+test_url_accessible "just" "$JUST_URL"
+JUST_TARBALL=$(download_cached "just" "$JUST_URL")
+test_tarball_structure "just" "$JUST_TARBALL" 0 "just" "tar_gz"
+extract_to_bin "just" "$JUST_TARBALL" 0 "just" "tar_gz" "$TEST_BIN"
+test_binary_works "just" "$TEST_BIN/just" "--version"
 echo ""
 
 # =============================================================================

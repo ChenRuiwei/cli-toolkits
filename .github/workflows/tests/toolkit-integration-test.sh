@@ -91,6 +91,7 @@ extract_from_cache "dust" "dust" 1
 extract_from_cache "eza" "eza" 0
 extract_from_cache "fd" "fd" 1
 extract_from_cache "lazygit" "lazygit" 0
+extract_from_cache "just" "just" 0
 extract_from_cache "lsd" "lsd" 1
 extract_from_cache "rg" "rg" 1
 extract_from_cache "starship" "starship" 0
@@ -112,7 +113,7 @@ ls -la "$INTEGRATION_OUT/"
 
 echo ""
 echo "📦 Verifying all tools are in bin..."
-REQUIRED_TOOLS="bat btop delta dust eza fd fish fzf lazygit lsd nvim nvim.appimage rg starship tealdeer tldr tmux dotter yazi zoxide direnv"
+REQUIRED_TOOLS="bat btop delta dust eza fd fish fzf just lazygit lsd nvim nvim.appimage rg starship tealdeer tldr tmux dotter yazi zoxide direnv"
 ALL_FOUND=true
 for tool in $REQUIRED_TOOLS; do
     if [ -x "$INTEGRATION_OUT/$tool" ]; then
@@ -150,6 +151,7 @@ test_tool "fd" "fd"
 test_tool "fish" "fish"
 test_tool "fzf" "fzf"
 test_tool "lazygit" "lazygit"
+test_tool "just" "just"
 test_tool "lsd" "lsd"
 test_tool "neovim" "nvim"
 test_tool "rg (ripgrep)" "rg"
@@ -188,3 +190,4 @@ echo ""
 echo "=========================================="
 echo "✅ All integration tests passed!"
 echo "=========================================="
+

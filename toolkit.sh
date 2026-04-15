@@ -58,6 +58,7 @@ if [ $? -eq 0 ]; then
     echo "fish:     $("$DEST/fish" --version 2>/dev/null | head -n 1 || echo "N/A")"
     echo "fzf:      $($DEST/fzf --version 2>/dev/null | head -n 1 || echo "N/A")"
     echo "lazygit:  $("$DEST/lazygit" --version 2>/dev/null | head -n 1 || echo "N/A")"
+    echo "just:     $("$DEST/just" --version 2>/dev/null | head -n 1 || echo "N/A")"
     echo "lsd:      $("$DEST/lsd" --version 2>/dev/null | head -n 1 || echo "N/A")"
     echo "neovim:   $($DEST/nvim --version 2>/dev/null | head -n 1 || echo "N/A")"
     echo "rg:       $("$DEST/rg" --version 2>/dev/null | head -n 1 || echo "N/A")"

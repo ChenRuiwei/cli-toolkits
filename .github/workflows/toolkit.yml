@@ -24,7 +24,7 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            runner: ubuntu-latest
+            runner: ubuntu-24.04
           - arch: arm64
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
@@ -78,6 +78,7 @@ jobs:
               GO_ARCH="amd64"
               DOTTER_ARCH="x64"
               FISH_ARCH="x86_64"
+              PLATFORM_ARCH="x86_64"
               YAZI_ARCH="x86_64"
               ;;
             aarch64|arm64)
@@ -90,6 +91,7 @@ jobs:
               GO_ARCH="arm64"
               DOTTER_ARCH="arm64"
               FISH_ARCH="aarch64"
+              PLATFORM_ARCH="arm64"
               YAZI_ARCH="aarch64"
               ;;
             *)
@@ -219,12 +221,12 @@ jobs:
             "fzf" 0
 
           echo "⬇️ neovim (AppImage)..."
-          curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-${FISH_ARCH}.appimage" -o "$OUT/nvim.appimage"
+          curl -fsSL "https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-${PLATFORM_ARCH}.appimage" -o "$OUT/nvim.appimage"
           chmod +x "$OUT/nvim.appimage"
           ln -s nvim.appimage "$OUT/nvim"
 
           extract_single "tmux" \
-            "https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-${FISH_ARCH}.tar.gz" \
+            "https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-${PLATFORM_ARCH}.tar.gz" \
             "tmux" 0
 
           echo "⬇️ tokei ${TOKEI_VER} (via cargo - last due to compile time)..."

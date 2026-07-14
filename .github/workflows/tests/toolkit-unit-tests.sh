@@ -26,6 +26,7 @@ case $(uname -m) in
         GO_ARCH="amd64"
         DOTTER_ARCH="x64"
         FISH_ARCH="x86_64"
+        PLATFORM_ARCH="x86_64"
         YAZI_ARCH="x86_64"
         ;;
     aarch64|arm64)
@@ -38,6 +39,7 @@ case $(uname -m) in
         GO_ARCH="arm64"
         DOTTER_ARCH="arm64"
         FISH_ARCH="aarch64"
+        PLATFORM_ARCH="arm64"
         YAZI_ARCH="aarch64"
         ;;
     *)
@@ -617,7 +619,7 @@ echo ""
 # TEST 19: neovim (AppImage)
 # =============================================================================
 log_info "Testing neovim (AppImage)..."
-NEOVIM_URL="https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-${FISH_ARCH}.appimage"
+NEOVIM_URL="https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-${PLATFORM_ARCH}.appimage"
 test_url_accessible "neovim" "$NEOVIM_URL"
 NEOVIM_TARBALL=$(download_cached "neovim" "$NEOVIM_URL")
 copy_raw_to_bin "nvim.appimage" "$NEOVIM_TARBALL"
@@ -629,7 +631,7 @@ echo ""
 # TEST 20: tmux
 # =============================================================================
 log_info "Testing tmux..."
-TMUX_URL="https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-${FISH_ARCH}.tar.gz"
+TMUX_URL="https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-${PLATFORM_ARCH}.tar.gz"
 test_url_accessible "tmux" "$TMUX_URL"
 TMUX_TARBALL=$(download_cached "tmux" "$TMUX_URL")
 test_tarball_structure "tmux" "$TMUX_TARBALL" 0 "tmux" "tar_gz"

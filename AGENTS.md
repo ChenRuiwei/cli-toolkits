@@ -5,7 +5,7 @@
 **Branch:** main
 
 ## OVERVIEW
-CLI toolkit installer with GitHub Actions build system. Downloads prebuilt binaries for 20 tools.
+CLI toolkit installer with GitHub Actions build system. Downloads prebuilt binaries for 21 tools.
 
 ## STRUCTURE
 ```
@@ -29,7 +29,7 @@ CLI toolkit installer with GitHub Actions build system. Downloads prebuilt binar
 | Tool | Install Method | Binary Location |
 |------|---------------|----------------|
 | bat, delta, dust, fd, lsd, rg | `extract_single` strip=1 | tar/{binary} |
-| eza, lazygit, starship, zoxide, fzf, tmux | `extract_single` strip=0 | tar/{binary} at root |
+| eza, just, lazygit, starship, zoxide, fzf, tmux | `extract_single` strip=0 | tar/{binary} at root |
 | fish | `extract_xz_single` strip=0 | tar.xz/{binary} |
 | btop | special tar.bz2 | btop/bin/{binary} |
 | neovim | AppImage | nvim.appimage + nvim symlink |
@@ -108,7 +108,7 @@ TOOLKIT_CACHE_DIR="$HOME/.cache/toolkit-test" bash .github/workflows/tests/toolk
 ```
 
 ## NOTES
-- 20 tools: bat, btop, delta, dust, eza, fd, fish, fzf, lazygit, lsd, neovim, rg, starship, tealdeer, tmux, tokei, dotter, yazi, zoxide, direnv
+- 21 tools: bat, btop, delta, dust, eza, fd, fish, fzf, just, lazygit, lsd, neovim, rg, starship, tealdeer, tmux, tokei, dotter, yazi, zoxide, direnv
 - Binary names match tool names except: ripgrep→rg, neovim→nvim
 - neovim uses AppImage with symlink: nvim → nvim.appimage
 - tealdeer provides tldr symlink: tldr → tealdeer

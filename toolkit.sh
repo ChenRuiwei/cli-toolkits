@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 REPO="ChenRuiwei/cli-toolkits"
 
@@ -39,11 +40,10 @@ mkdir -p "$DEST"
 
 echo "⬇️ Downloading..."
 TMPFILE=$(mktemp)
-curl -L -f --progress-bar "$URL" -o "$TMPFILE"
-tar -xz -C "$DEST" -f "$TMPFILE"
-rm -f "$TMPFILE"
+trap 'rm -f "$TMPFILE"' EXIT
 
-if [ $? -eq 0 ]; then
+if curl -L -f --progress-bar "$URL" -o "$TMPFILE" &&
+    tar -xz -C "$DEST" -f "$TMPFILE"; then
     echo "✅ Success! Tools installed."
     echo ""
     echo "Current versions:"

@@ -15,6 +15,37 @@ NC='\033[0m' # No Color
 CACHE_DIR="${TOOLKIT_CACHE_DIR:-$HOME/.cache/toolkit-test}"
 mkdir -p "$CACHE_DIR"
 
+case $(uname -m) in
+    x86_64|amd64)
+        TOOLKIT_ARCH="amd64"
+        RUST_ARCH="x86_64"
+        DELTA_LIBC="musl"
+        EZA_LIBC="musl"
+        RG_LIBC="musl"
+        LAZYGIT_ARCH="x86_64"
+        GO_ARCH="amd64"
+        DOTTER_ARCH="x64"
+        FISH_ARCH="x86_64"
+        YAZI_ARCH="x86_64"
+        ;;
+    aarch64|arm64)
+        TOOLKIT_ARCH="arm64"
+        RUST_ARCH="aarch64"
+        DELTA_LIBC="gnu"
+        EZA_LIBC="gnu"
+        RG_LIBC="gnu"
+        LAZYGIT_ARCH="arm64"
+        GO_ARCH="arm64"
+        DOTTER_ARCH="arm64"
+        FISH_ARCH="aarch64"
+        YAZI_ARCH="aarch64"
+        ;;
+    *)
+        echo "Unsupported architecture: $(uname -m)" >&2
+        exit 1
+        ;;
+esac
+
 # Tool definitions: name, version, url, extract_type, expected_binary, strip_components
 # extract_type: tar_gz, tar_xz, tar_bz2, zip, raw, cargo
 
@@ -31,13 +62,14 @@ STARSHIP_VER="1.24.2"
 JUST_VER="1.49.0"
 TEALDEER_VER="1.8.1"
 YAZI_VER="26.1.22"
-          ZOXIDE_VER="0.9.9"
-          DOTTER_VER="0.13.4"
+ZOXIDE_VER="0.9.9"
+DOTTER_VER="0.13.4"
 DIRENV_VER="2.37.1"
 FISH_VER="4.6.0"
 FZF_VER="0.71.0"
 NEOVIM_VER="0.12.1"
 TMUX_VER="3.6a"
+TOKEI_VER="14.0.0"
 
 # Counters
 TOTAL_TESTS=0
@@ -69,19 +101,24 @@ download_cached() {
     local name="$1"
     local url="$2"
     local cache_file="$CACHE_DIR/${name}.tarball"
+    local url_file="${cache_file}.url"
+    local temp_file="${cache_file}.tmp"
     
-    if [ -f "$cache_file" ]; then
+    if [ -f "$cache_file" ] && [ "$(cat "$url_file" 2>/dev/null || true)" = "$url" ]; then
         log_info "Using cached $name"
         echo "$cache_file"
         return 0
     fi
     
     log_info "Downloading $name from $url"
-    if curl -fsSL "$url" -o "$cache_file"; then
+    if curl -fsSL "$url" -o "$temp_file"; then
+        mv "$temp_file" "$cache_file"
+        printf '%s\n' "$url" > "$url_file"
         log_info "Cached $name to $cache_file"
         echo "$cache_file"
         return 0
     else
+        rm -f "$temp_file"
         log_fail "Failed to download $name"
         return 1
     fi
@@ -90,9 +127,18 @@ download_cached() {
 test_url_accessible() {
     local name="$1"
     local url="$2"
+    local cache_name="${3:-$name}"
+    local cache_file="$CACHE_DIR/${cache_name}.tarball"
+    local url_file="${cache_file}.url"
+
+    if [ -f "$cache_file" ] && [ "$(cat "$url_file" 2>/dev/null || true)" = "$url" ]; then
+        log_pass "$name URL matches cached download"
+        return 0
+    fi
     
-    local status=$(curl -sfIL "$url" 2>/dev/null | grep "^HTTP" | tail -1 | awk '{print $2}')
-    if [ "$status" = "200" ]; then
+    local status
+    status=$(curl -sL --range 0-0 -o /dev/null -w "%{http_code}" "$url")
+    if [ "$status" = "200" ] || [ "$status" = "206" ]; then
         log_pass "$name URL is accessible (HTTP $status)"
         return 0
     else
@@ -294,21 +340,31 @@ extract_to_bin() {
     return 0
 }
 
+copy_raw_to_bin() {
+    local name="$1"
+    local source="$2"
+    test_tarball_structure "$name" "$source" 0 "$name" "raw"
+    cp "$source" "$TEST_BIN/$name"
+    chmod +x "$TEST_BIN/$name"
+}
+
 echo "=========================================="
 echo "Toolkit Unit Test Suite"
 echo "Cache directory: $CACHE_DIR"
+echo "Architecture: $TOOLKIT_ARCH"
 echo "=========================================="
 echo ""
 
 # Create test bin directory
 TEST_BIN="$CACHE_DIR/test-bin"
+rm -rf "$TEST_BIN"
 mkdir -p "$TEST_BIN"
 
 # =============================================================================
 # TEST 1: bat
 # =============================================================================
 log_info "Testing bat..."
-BAT_URL="https://github.com/sharkdp/bat/releases/download/v${BAT_VER}/bat-v${BAT_VER}-x86_64-unknown-linux-musl.tar.gz"
+BAT_URL="https://github.com/sharkdp/bat/releases/download/v${BAT_VER}/bat-v${BAT_VER}-${RUST_ARCH}-unknown-linux-musl.tar.gz"
 test_url_accessible "bat" "$BAT_URL"
 BAT_TARBALL=$(download_cached "bat" "$BAT_URL")
 test_tarball_structure "bat" "$BAT_TARBALL" 1 "bat" "tar_gz"
@@ -320,7 +376,7 @@ echo ""
 # TEST 2: btop
 # =============================================================================
 log_info "Testing btop..."
-BTOP_URL="https://github.com/aristocratos/btop/releases/download/v${BTOP_VER}/btop-x86_64-unknown-linux-musl.tbz"
+BTOP_URL="https://github.com/aristocratos/btop/releases/download/v${BTOP_VER}/btop-${RUST_ARCH}-unknown-linux-musl.tbz"
 test_url_accessible "btop" "$BTOP_URL"
 BTOP_TARBALL=$(download_cached "btop" "$BTOP_URL")
 # btop uses tar.bz2 with special structure: btop/bin/btop
@@ -343,7 +399,7 @@ echo ""
 # TEST 3: delta
 # =============================================================================
 log_info "Testing delta..."
-DELTA_URL="https://github.com/dandavison/delta/releases/download/${DELTA_VER}/delta-${DELTA_VER}-x86_64-unknown-linux-musl.tar.gz"
+DELTA_URL="https://github.com/dandavison/delta/releases/download/${DELTA_VER}/delta-${DELTA_VER}-${RUST_ARCH}-unknown-linux-${DELTA_LIBC}.tar.gz"
 test_url_accessible "delta" "$DELTA_URL"
 DELTA_TARBALL=$(download_cached "delta" "$DELTA_URL")
 test_tarball_structure "delta" "$DELTA_TARBALL" 1 "delta" "tar_gz"
@@ -355,7 +411,7 @@ echo ""
 # TEST 4: dust
 # =============================================================================
 log_info "Testing dust..."
-DUST_URL="https://github.com/bootandy/dust/releases/download/v${DUST_VER}/dust-v${DUST_VER}-x86_64-unknown-linux-musl.tar.gz"
+DUST_URL="https://github.com/bootandy/dust/releases/download/v${DUST_VER}/dust-v${DUST_VER}-${RUST_ARCH}-unknown-linux-musl.tar.gz"
 test_url_accessible "dust" "$DUST_URL"
 DUST_TARBALL=$(download_cached "dust" "$DUST_URL")
 test_tarball_structure "dust" "$DUST_TARBALL" 1 "dust" "tar_gz"
@@ -367,7 +423,7 @@ echo ""
 # TEST 5: eza
 # =============================================================================
 log_info "Testing eza..."
-EZA_URL="https://github.com/eza-community/eza/releases/download/v${EZA_VER}/eza_x86_64-unknown-linux-musl.tar.gz"
+EZA_URL="https://github.com/eza-community/eza/releases/download/v${EZA_VER}/eza_${RUST_ARCH}-unknown-linux-${EZA_LIBC}.tar.gz"
 test_url_accessible "eza" "$EZA_URL"
 EZA_TARBALL=$(download_cached "eza" "$EZA_URL")
 test_tarball_structure "eza" "$EZA_TARBALL" 0 "eza" "tar_gz"
@@ -379,7 +435,7 @@ echo ""
 # TEST 6: fd
 # =============================================================================
 log_info "Testing fd..."
-FD_URL="https://github.com/sharkdp/fd/releases/download/v${FD_VER}/fd-v${FD_VER}-x86_64-unknown-linux-musl.tar.gz"
+FD_URL="https://github.com/sharkdp/fd/releases/download/v${FD_VER}/fd-v${FD_VER}-${RUST_ARCH}-unknown-linux-musl.tar.gz"
 test_url_accessible "fd" "$FD_URL"
 FD_TARBALL=$(download_cached "fd" "$FD_URL")
 test_tarball_structure "fd" "$FD_TARBALL" 1 "fd" "tar_gz"
@@ -391,7 +447,7 @@ echo ""
 # TEST 7: lazygit
 # =============================================================================
 log_info "Testing lazygit..."
-LAZYGIT_URL="https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VER}/lazygit_${LAZYGIT_VER}_linux_x86_64.tar.gz"
+LAZYGIT_URL="https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VER}/lazygit_${LAZYGIT_VER}_linux_${LAZYGIT_ARCH}.tar.gz"
 test_url_accessible "lazygit" "$LAZYGIT_URL"
 LAZYGIT_TARBALL=$(download_cached "lazygit" "$LAZYGIT_URL")
 test_tarball_structure "lazygit" "$LAZYGIT_TARBALL" 0 "lazygit" "tar_gz"
@@ -400,10 +456,10 @@ test_binary_works "lazygit" "$TEST_BIN/lazygit" "--version"
 echo ""
 
 # =============================================================================
-# TEST 7.5: just
+# TEST 8: just
 # =============================================================================
 log_info "Testing just..."
-JUST_URL="https://github.com/casey/just/releases/download/${JUST_VER}/just-${JUST_VER}-x86_64-unknown-linux-musl.tar.gz"
+JUST_URL="https://github.com/casey/just/releases/download/${JUST_VER}/just-${JUST_VER}-${RUST_ARCH}-unknown-linux-musl.tar.gz"
 test_url_accessible "just" "$JUST_URL"
 JUST_TARBALL=$(download_cached "just" "$JUST_URL")
 test_tarball_structure "just" "$JUST_TARBALL" 0 "just" "tar_gz"
@@ -412,10 +468,10 @@ test_binary_works "just" "$TEST_BIN/just" "--version"
 echo ""
 
 # =============================================================================
-# TEST 8: lsd
+# TEST 9: lsd
 # =============================================================================
 log_info "Testing lsd..."
-LSD_URL="https://github.com/lsd-rs/lsd/releases/download/v${LSD_VER}/lsd-v${LSD_VER}-x86_64-unknown-linux-musl.tar.gz"
+LSD_URL="https://github.com/lsd-rs/lsd/releases/download/v${LSD_VER}/lsd-v${LSD_VER}-${RUST_ARCH}-unknown-linux-musl.tar.gz"
 test_url_accessible "lsd" "$LSD_URL"
 LSD_TARBALL=$(download_cached "lsd" "$LSD_URL")
 test_tarball_structure "lsd" "$LSD_TARBALL" 1 "lsd" "tar_gz"
@@ -424,11 +480,11 @@ test_binary_works "lsd" "$TEST_BIN/lsd" "--version"
 echo ""
 
 # =============================================================================
-# TEST 9: ripgrep (rg)
+# TEST 10: ripgrep (rg)
 # =============================================================================
 log_info "Testing ripgrep (rg)..."
-RG_URL="https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VER}/ripgrep-${RIPGREP_VER}-x86_64-unknown-linux-musl.tar.gz"
-test_url_accessible "ripgrep" "$RG_URL"
+RG_URL="https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VER}/ripgrep-${RIPGREP_VER}-${RUST_ARCH}-unknown-linux-${RG_LIBC}.tar.gz"
+test_url_accessible "ripgrep" "$RG_URL" "rg"
 RG_TARBALL=$(download_cached "rg" "$RG_URL")
 test_tarball_structure "ripgrep" "$RG_TARBALL" 1 "rg" "tar_gz"
 extract_to_bin "ripgrep" "$RG_TARBALL" 1 "rg" "tar_gz" "$TEST_BIN"
@@ -436,10 +492,10 @@ test_binary_works "ripgrep" "$TEST_BIN/rg" "--version"
 echo ""
 
 # =============================================================================
-# TEST 10: starship
+# TEST 11: starship
 # =============================================================================
 log_info "Testing starship..."
-STARSHIP_URL="https://github.com/starship/starship/releases/download/v${STARSHIP_VER}/starship-x86_64-unknown-linux-musl.tar.gz"
+STARSHIP_URL="https://github.com/starship/starship/releases/download/v${STARSHIP_VER}/starship-${RUST_ARCH}-unknown-linux-musl.tar.gz"
 test_url_accessible "starship" "$STARSHIP_URL"
 STARSHIP_TARBALL=$(download_cached "starship" "$STARSHIP_URL")
 test_tarball_structure "starship" "$STARSHIP_TARBALL" 0 "starship" "tar_gz"
@@ -448,39 +504,24 @@ test_binary_works "starship" "$TEST_BIN/starship" "--version"
 echo ""
 
 # =============================================================================
-# TEST 11: tealdeer
+# TEST 12: tealdeer
 # =============================================================================
 log_info "Testing tealdeer..."
-TEALDEER_URL="https://github.com/tealdeer-rs/tealdeer/releases/download/v${TEALDEER_VER}/tealdeer-linux-x86_64-musl"
+TEALDEER_URL="https://github.com/tealdeer-rs/tealdeer/releases/download/v${TEALDEER_VER}/tealdeer-linux-${RUST_ARCH}-musl"
 test_url_accessible "tealdeer" "$TEALDEER_URL"
 TEALDEER_TARBALL=$(download_cached "tealdeer" "$TEALDEER_URL")
-# tealdeer is a raw binary download
-TEST_DIR="$CACHE_DIR/test-tealdeer"
-rm -rf "$TEST_DIR"
-mkdir -p "$TEST_DIR"
-if curl -fsSL "$TEALDEER_URL" -o "$TEST_DIR/tealdeer"; then
-    chmod +x "$TEST_DIR/tealdeer"
-    if file "$TEST_DIR/tealdeer" | grep -q "ELF"; then
-        log_pass "tealdeer is a valid raw binary"
-        mv "$TEST_DIR/tealdeer" "$TEST_BIN/"
-    else
-        log_fail "tealdeer is not an ELF binary"
-    fi
-else
-    log_fail "tealdeer download failed"
-fi
-rm -rf "$TEST_DIR"
+copy_raw_to_bin "tealdeer" "$TEALDEER_TARBALL"
 test_binary_works "tealdeer" "$TEST_BIN/tealdeer" "--version"
 echo ""
 
 # =============================================================================
-# TEST 12: yazi
+# TEST 13: yazi
 # =============================================================================
 log_info "Testing yazi..."
-YAZI_URL="https://github.com/sxyazi/yazi/releases/download/v${YAZI_VER}/yazi-x86_64-unknown-linux-musl.zip"
+YAZI_URL="https://github.com/sxyazi/yazi/releases/download/v${YAZI_VER}/yazi-${YAZI_ARCH}-unknown-linux-musl.zip"
 test_url_accessible "yazi" "$YAZI_URL"
 YAZI_TARBALL=$(download_cached "yazi" "$YAZI_URL")
-# yazi is a zip file with structure: yazi-x86_64-unknown-linux-musl/yazi
+# yazi is a zip file with structure: yazi-${YAZI_ARCH}-unknown-linux-musl/yazi
 TEST_DIR="$CACHE_DIR/test-yazi"
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
@@ -488,7 +529,7 @@ unzip -o "$YAZI_TARBALL" -d "$TEST_DIR" 2>/dev/null
 if [ -d "$TEST_DIR/yazi-"*"-unknown-linux-musl" ]; then
     SUBDIR=$(ls -d "$TEST_DIR/yazi-"*"-unknown-linux-musl" | head -1)
     if [ -f "$SUBDIR/yazi" ]; then
-        log_pass "yazi zip structure is valid (yazi-x86_64-unknown-linux-musl/yazi)"
+        log_pass "yazi zip structure is valid (yazi-${YAZI_ARCH}-unknown-linux-musl/yazi)"
         mv "$SUBDIR/yazi" "$TEST_BIN/"
     else
         log_fail "yazi zip missing yazi binary in subdir"
@@ -503,10 +544,10 @@ test_binary_works "yazi" "$TEST_BIN/yazi" "--version"
 echo ""
 
 # =============================================================================
-# TEST 13: zoxide
+# TEST 14: zoxide
 # =============================================================================
 log_info "Testing zoxide..."
-ZOXIDE_URL="https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VER}/zoxide-${ZOXIDE_VER}-x86_64-unknown-linux-musl.tar.gz"
+ZOXIDE_URL="https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VER}/zoxide-${ZOXIDE_VER}-${RUST_ARCH}-unknown-linux-musl.tar.gz"
 test_url_accessible "zoxide" "$ZOXIDE_URL"
 ZOXIDE_TARBALL=$(download_cached "zoxide" "$ZOXIDE_URL")
 # zoxide has binary at root with extra files
@@ -516,62 +557,32 @@ test_binary_works "zoxide" "$TEST_BIN/zoxide" "--version"
 echo ""
 
 # =============================================================================
-# TEST 14: dotter
+# TEST 15: dotter
 # =============================================================================
 log_info "Testing dotter..."
-DOTTER_URL="https://github.com/SuperCuber/dotter/releases/download/v${DOTTER_VER}/dotter-linux-x64-musl"
+DOTTER_URL="https://github.com/SuperCuber/dotter/releases/download/v${DOTTER_VER}/dotter-linux-${DOTTER_ARCH}-musl"
 test_url_accessible "dotter" "$DOTTER_URL"
 DOTTER_TARBALL=$(download_cached "dotter" "$DOTTER_URL")
-# dotter is a raw binary download
-TEST_DIR="$CACHE_DIR/test-dotter"
-rm -rf "$TEST_DIR"
-mkdir -p "$TEST_DIR"
-if curl -fsSL "$DOTTER_URL" -o "$TEST_DIR/dotter"; then
-    chmod +x "$TEST_DIR/dotter"
-    if file "$TEST_DIR/dotter" | grep -q "ELF"; then
-        log_pass "dotter is a valid raw binary"
-        mv "$TEST_DIR/dotter" "$TEST_BIN/"
-    else
-        log_fail "dotter is not an ELF binary"
-    fi
-else
-    log_fail "dotter download failed"
-fi
-rm -rf "$TEST_DIR"
+copy_raw_to_bin "dotter" "$DOTTER_TARBALL"
 test_binary_works "dotter" "$TEST_BIN/dotter" "--version"
 echo ""
 
 # =============================================================================
-# TEST 15: direnv
+# TEST 16: direnv
 # =============================================================================
 log_info "Testing direnv..."
-DIRENV_URL="https://github.com/direnv/direnv/releases/download/v${DIRENV_VER}/direnv.linux-amd64"
+DIRENV_URL="https://github.com/direnv/direnv/releases/download/v${DIRENV_VER}/direnv.linux-${GO_ARCH}"
 test_url_accessible "direnv" "$DIRENV_URL"
 DIRENV_TARBALL=$(download_cached "direnv" "$DIRENV_URL")
-# direnv is a raw binary download
-TEST_DIR="$CACHE_DIR/test-direnv"
-rm -rf "$TEST_DIR"
-mkdir -p "$TEST_DIR"
-if curl -fsSL "$DIRENV_URL" -o "$TEST_DIR/direnv"; then
-    chmod +x "$TEST_DIR/direnv"
-    if file "$TEST_DIR/direnv" | grep -q "ELF"; then
-        log_pass "direnv is a valid raw binary"
-        mv "$TEST_DIR/direnv" "$TEST_BIN/"
-    else
-        log_fail "direnv is not an ELF binary"
-    fi
-else
-    log_fail "direnv download failed"
-fi
-rm -rf "$TEST_DIR"
+copy_raw_to_bin "direnv" "$DIRENV_TARBALL"
 test_binary_works "direnv" "$TEST_BIN/direnv" "--version"
 echo ""
 
 # =============================================================================
-# TEST 16: fish
+# TEST 17: fish
 # =============================================================================
 log_info "Testing fish..."
-FISH_URL="https://github.com/fish-shell/fish-shell/releases/download/${FISH_VER}/fish-${FISH_VER}-linux-x86_64.tar.xz"
+FISH_URL="https://github.com/fish-shell/fish-shell/releases/download/${FISH_VER}/fish-${FISH_VER}-linux-${FISH_ARCH}.tar.xz"
 test_url_accessible "fish" "$FISH_URL"
 FISH_TARBALL=$(download_cached "fish" "$FISH_URL")
 TEST_DIR="$CACHE_DIR/test-fish"
@@ -590,10 +601,10 @@ test_binary_works "fish" "$TEST_BIN/fish" "--version"
 echo ""
 
 # =============================================================================
-# TEST 17: fzf
+# TEST 18: fzf
 # =============================================================================
 log_info "Testing fzf..."
-FZF_URL="https://github.com/junegunn/fzf/releases/download/v${FZF_VER}/fzf-${FZF_VER}-linux_amd64.tar.gz"
+FZF_URL="https://github.com/junegunn/fzf/releases/download/v${FZF_VER}/fzf-${FZF_VER}-linux_${GO_ARCH}.tar.gz"
 test_url_accessible "fzf" "$FZF_URL"
 FZF_TARBALL=$(download_cached "fzf" "$FZF_URL")
 # fzf has binary at root in tarball
@@ -603,36 +614,22 @@ test_binary_works "fzf" "$TEST_BIN/fzf" "--version"
 echo ""
 
 # =============================================================================
-# TEST 18: neovim (AppImage)
+# TEST 19: neovim (AppImage)
 # =============================================================================
 log_info "Testing neovim (AppImage)..."
-NEOVIM_URL="https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-x86_64.appimage"
+NEOVIM_URL="https://github.com/neovim/neovim/releases/download/v${NEOVIM_VER}/nvim-linux-${FISH_ARCH}.appimage"
 test_url_accessible "neovim" "$NEOVIM_URL"
 NEOVIM_TARBALL=$(download_cached "neovim" "$NEOVIM_URL")
-TEST_DIR="$CACHE_DIR/test-neovim"
-rm -rf "$TEST_DIR"
-mkdir -p "$TEST_DIR"
-if curl -fsSL "$NEOVIM_URL" -o "$TEST_DIR/nvim.appimage"; then
-    chmod +x "$TEST_DIR/nvim.appimage"
-    if file "$TEST_DIR/nvim.appimage" | grep -q "ELF\|AppImage"; then
-        log_pass "neovim AppImage is valid"
-        mv "$TEST_DIR/nvim.appimage" "$TEST_BIN/"
-        ln -s nvim.appimage "$TEST_BIN/nvim"
-    else
-        log_fail "neovim AppImage is not valid"
-    fi
-else
-    log_fail "neovim AppImage download failed"
-fi
-rm -rf "$TEST_DIR"
+copy_raw_to_bin "nvim.appimage" "$NEOVIM_TARBALL"
+ln -s nvim.appimage "$TEST_BIN/nvim"
 test_binary_works "neovim" "$TEST_BIN/nvim.appimage" "--version"
 echo ""
 
 # =============================================================================
-# TEST 19: tmux
+# TEST 20: tmux
 # =============================================================================
 log_info "Testing tmux..."
-TMUX_URL="https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-x86_64.tar.gz"
+TMUX_URL="https://github.com/tmux/tmux-builds/releases/download/v${TMUX_VER}/tmux-${TMUX_VER}-linux-${FISH_ARCH}.tar.gz"
 test_url_accessible "tmux" "$TMUX_URL"
 TMUX_TARBALL=$(download_cached "tmux" "$TMUX_URL")
 test_tarball_structure "tmux" "$TMUX_TARBALL" 0 "tmux" "tar_gz"
@@ -641,11 +638,36 @@ test_binary_works "tmux" "$TEST_BIN/tmux" "-V"
 echo ""
 
 # =============================================================================
-# TEST 20: tokei (last - cargo install is slow)
+# TEST 21: tokei (last - cargo install is slow)
 # =============================================================================
-log_info "Testing tokei (cargo install - last due to compile time)..."
+log_info "Testing tokei ${TOKEI_VER} (cargo install - last due to compile time)..."
 log_warn "tokei is installed via cargo, skipping URL test"
-log_pass "tokei marked as cargo-install tool"
+if grep -Fq "TOKEI_VER=\"${TOKEI_VER}\"" .github/workflows/toolkit.yml &&
+    grep -Fq 'cargo install tokei --version "$TOKEI_VER" --locked' .github/workflows/toolkit.yml; then
+    log_pass "tokei cargo install is pinned to ${TOKEI_VER}"
+else
+    log_fail "tokei cargo install is not pinned to ${TOKEI_VER}"
+fi
+echo ""
+
+# =============================================================================
+# INSTALLER: download failures must not report success
+# =============================================================================
+log_info "Testing installer failure handling..."
+MOCK_BIN="$CACHE_DIR/mock-bin"
+INSTALL_OUTPUT="$CACHE_DIR/installer-output"
+rm -rf "$MOCK_BIN" "$CACHE_DIR/install-home"
+mkdir -p "$MOCK_BIN"
+printf '#!/bin/sh\nexit 22\n' > "$MOCK_BIN/curl"
+chmod +x "$MOCK_BIN/curl"
+if HOME="$CACHE_DIR/install-home" PATH="$MOCK_BIN:$PATH" bash toolkit.sh > "$INSTALL_OUTPUT" 2>&1; then
+    log_fail "installer returned success after a download failure"
+elif grep -q "Success" "$INSTALL_OUTPUT"; then
+    log_fail "installer reported success after a download failure"
+else
+    log_pass "installer propagates download failures"
+fi
+rm -rf "$MOCK_BIN" "$CACHE_DIR/install-home" "$INSTALL_OUTPUT"
 echo ""
 
 # =============================================================================

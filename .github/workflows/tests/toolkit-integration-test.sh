@@ -3,12 +3,29 @@ set -euo pipefail
 
 CACHE_DIR="${TOOLKIT_CACHE_DIR:-$HOME/.cache/toolkit-test}"
 INTEGRATION_OUT="$CACHE_DIR/integration-bin"
+TOKEI_VER="14.0.0"
+
+case $(uname -m) in
+    x86_64|amd64)
+        TOOLKIT_ARCH="amd64"
+        YAZI_ARCH="x86_64"
+        ;;
+    aarch64|arm64)
+        TOOLKIT_ARCH="arm64"
+        YAZI_ARCH="aarch64"
+        ;;
+    *)
+        echo "Unsupported architecture: $(uname -m)" >&2
+        exit 1
+        ;;
+esac
 rm -rf "$INTEGRATION_OUT"
 mkdir -p "$INTEGRATION_OUT"
 
 echo "=========================================="
 echo "Toolkit Integration Test (using cache)"
 echo "Cache: $CACHE_DIR"
+echo "Architecture: $TOOLKIT_ARCH"
 echo ""
 
 extract_from_cache() {
@@ -57,7 +74,7 @@ extract_yazi_from_cache() {
     local tarball="$CACHE_DIR/yazi.tarball"
     TMPDIR=$(mktemp -d)
     unzip -o "$tarball" -d "$TMPDIR/"
-    mv "$TMPDIR/yazi-x86_64-unknown-linux-musl/yazi" "$INTEGRATION_OUT/"
+    mv "$TMPDIR/yazi-${YAZI_ARCH}-unknown-linux-musl/yazi" "$INTEGRATION_OUT/"
     rm -rf "$TMPDIR"
 }
 
@@ -105,7 +122,13 @@ extract_xz_from_cache "fish" "fish" 0
 extract_from_cache "fzf" "fzf" 0
 extract_neovim_from_cache
 extract_from_cache "tmux" "tmux" 0
-echo "(tokei skipped - cargo install)"
+if grep -Fq "TOKEI_VER=\"${TOKEI_VER}\"" .github/workflows/toolkit.yml &&
+    grep -Fq 'cargo install tokei --version "$TOKEI_VER" --locked' .github/workflows/toolkit.yml; then
+    echo "✅ tokei cargo install is pinned to ${TOKEI_VER}"
+else
+    echo "❌ tokei cargo install is not pinned to ${TOKEI_VER}" >&2
+    exit 1
+fi
 
 echo ""
 echo "📦 Installed tools:"
@@ -123,6 +146,10 @@ for tool in $REQUIRED_TOOLS; do
         ALL_FOUND=false
     fi
 done
+
+if [ "$ALL_FOUND" = false ]; then
+    exit 1
+fi
 
 echo ""
 echo "📦 Testing each tool's version..."
@@ -165,7 +192,7 @@ test_tool "direnv" "direnv" "--version"
 
 echo ""
 echo "📦 Creating toolkit tarball..."
-TAR_NAME="$CACHE_DIR/toolkit-test-amd64.tar.gz"
+TAR_NAME="$CACHE_DIR/toolkit-test-${TOOLKIT_ARCH}.tar.gz"
 tar -czvf "$TAR_NAME" -C "$INTEGRATION_OUT" .
 
 echo ""
@@ -177,17 +204,22 @@ tar -xzvf "$TAR_NAME" -C "$VERIFY_DIR/"
 
 echo ""
 echo "📦 Verifying extracted tools..."
+ALL_FOUND=true
 for tool in $REQUIRED_TOOLS; do
     if [ -x "$VERIFY_DIR/$tool" ]; then
         echo "  ✅ $tool - verified in tarball"
     else
         echo "  ❌ $tool - MISSING in tarball!"
+        ALL_FOUND=false
     fi
 done
 rm -rf "$VERIFY_DIR"
+
+if [ "$ALL_FOUND" = false ]; then
+    exit 1
+fi
 
 echo ""
 echo "=========================================="
 echo "✅ All integration tests passed!"
 echo "=========================================="
-
